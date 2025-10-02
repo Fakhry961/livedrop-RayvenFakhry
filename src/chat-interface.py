@@ -17,7 +17,7 @@ def ask(q):
 def repl():
     print("Connected to", BASE)
     while True:
-        q = input("\n> ")
+        q = input("\n> Ask: ")
         if q.lower() in ("exit","quit"):
             print("bye")
             break
@@ -26,4 +26,5 @@ def repl():
         time.sleep(0.1)
 
 if __name__ == "__main__":
+
     repl()
