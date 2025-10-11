@@ -103,16 +103,6 @@ pnpm test       # Run tests
 pnpm storybook  # Launch Storybook UI
 ```
 
-## ⚙️ Environment Setup
-
-If using the assistant with live model access copy `.env.example` → `.env` and add:
-
-```bash
-OPENAI_API_KEY=your_key_here
-```
-
-`.env` is ignored by .gitignore — don’t commit secrets.
-
 ## ✅ Submission Checklist
 
 ✔ Catalog grid with Add-to-Cart
