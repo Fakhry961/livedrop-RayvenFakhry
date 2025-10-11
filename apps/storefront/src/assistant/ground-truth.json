@@ -1,0 +1,22 @@
+[
+  { "qid": "Q01", "category": "Returns", "question": "What is your return policy?", "answer": "You can return unworn items within 30 days for a full refund. See Returns for details." },
+  { "qid": "Q02", "category": "Shipping", "question": "How long does shipping take?", "answer": "Standard shipping typically takes 3-5 business days. Expedited is available at checkout." },
+  { "qid": "Q03", "category": "Order", "question": "How can I track my order?", "answer": "Use the Order Status page and enter your order ID to see the latest status and tracking info." },
+  { "qid": "Q04", "category": "Payment", "question": "What payment methods do you accept?", "answer": "We accept major credit cards, Apple Pay, Google Pay, and PayPal." },
+  { "qid": "Q05", "category": "Products", "question": "Are these items authentic?", "answer": "Yes — all items sold on our store are authentic and backed by our quality guarantee." },
+  { "qid": "Q06", "category": "Returns", "question": "Can I return a sale item?", "answer": "Sale items can be returned within 30 days unless explicitly marked final sale." },
+  { "qid": "Q07", "category": "Shipping", "question": "Do you ship internationally?", "answer": "We ship to many countries; international rates and delivery times vary by destination." },
+  { "qid": "Q08", "category": "Sizing", "question": "How do I find my size?", "answer": "Each product page includes sizing guidance. If unsure, contact support with your measurements." },
+  { "qid": "Q09", "category": "Stock", "question": "What does out of stock mean?", "answer": "Out of stock means we have zero available units for that SKU. You can sign up for restock notifications." },
+  { "qid": "Q10", "category": "Warranty", "question": "Do products have a warranty?", "answer": "Most items include a limited 1-year warranty; see product pages for details." },
+  { "qid": "Q11", "category": "Order", "question": "Can I change my shipping address after placing an order?", "answer": "If the order hasn't shipped, we may be able to change the address — contact support with your order ID." },
+  { "qid": "Q12", "category": "Returns", "question": "Who pays for return shipping?", "answer": "Return shipping is customer-paid unless the return is due to our error or the promotion states otherwise." },
+  { "qid": "Q13", "category": "Discounts", "question": "How do I apply a discount code?", "answer": "Enter the promo code at checkout in the 'Promo code' field and press Apply before placing the order." },
+  { "qid": "Q14", "category": "Account", "question": "How do I create an account?", "answer": "Click Sign up in the header and follow the prompts to save addresses and view order history." },
+  { "qid": "Q15", "category": "Privacy", "question": "How is my data used?", "answer": "We use your data to fulfill orders and improve our service. See our Privacy Policy for details." },
+  { "qid": "Q16", "category": "Order", "question": "My order arrived damaged — what do I do?", "answer": "Contact support with photos of the damage and your order ID; we'll help arrange a replacement or refund." },
+  { "qid": "Q17", "category": "Gift", "question": "Do you offer gift wrapping?", "answer": "Gift wrapping is available as an add-on at checkout when offered for a product." },
+  { "qid": "Q18", "category": "Tax", "question": "Will I be charged taxes?", "answer": "Applicable taxes are calculated at checkout based on your shipping address." },
+  { "qid": "Q19", "category": "Cancellation", "question": "Can I cancel my order?", "answer": "Orders can be cancelled if they haven't shipped. Contact support with the order ID promptly." },
+  { "qid": "Q20", "category": "Returns", "question": "How long until I receive my refund?", "answer": "Refunds are processed within 3-5 business days after we receive the return; your bank may take additional time." }
+]
