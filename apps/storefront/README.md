@@ -150,29 +150,11 @@ Docs: Storybook
 /assistant → Ask Support engine
 /public → static assets
 
-## 🧹 .gitignore (highlights)
-
-node_modules
-.pnpm-store
-dist
-storybook-static
-coverage
-.vitest
-*.log
-.DS_Store
-Thumbs.db
-.idea
-.vscode
-*.tsbuildinfo
-.env
-temp/
-
 ## � License
 
 Created for Eurisko Academy — Week 4 Frontend Assignment
 © 2025 Storefront Project — All rights reserved.
 
-*** End Patch
 
 
 
