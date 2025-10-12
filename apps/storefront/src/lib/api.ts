@@ -1,3 +1,16 @@
+/**
+ * Product shape used by the mock catalog and UI.
+ *
+ * - `id`: unique SKU identifier
+ * - `title`: human-friendly product title
+ * - `price`: numeric price in store currency
+ * - `image`: URL to product image
+ * - `tags`: array of category/tag slugs
+ * - `stockQty`: current available inventory
+ * - `desc`: optional human-readable description
+ */
+/// <reference types="vite/client" />
+
 export type Product = {
   id: string;
   title: string;
@@ -8,10 +21,15 @@ export type Product = {
   desc?: string;
 };
 
-// Build the URL. In dev, add a cache buster; in prod, keep it stable.
+// Build the URL for the local mock catalog. In dev we append a cache-busting
+// query param so the file reloads on changes; in production the path is stable.
 const catalogUrl =
   `/mock-catalog.json${import.meta.env.DEV ? `?v=${Date.now()}` : ""}`;
 
+/**
+ * Fetch the product catalog (mock JSON). Returns an array of Product.
+ * In development the request bypasses cache so authors see edits immediately.
+ */
 export const listProducts = async (): Promise<Product[]> => {
   const res = await fetch(catalogUrl, {
     cache: import.meta.env.DEV ? "no-store" : "default",
@@ -20,18 +38,32 @@ export const listProducts = async (): Promise<Product[]> => {
   return res.json();
 };
 
+/**
+ * Return a single product by id or undefined if not found.
+ */
 export const getProduct = async (id: string) => {
   const all = await listProducts();
   return all.find(p => p.id === id);
 };
 
 const STATUSES = ["Placed","Packed","Shipped","Delivered"] as const;
+/**
+ * Order tracking/status information returned by the mock order API.
+ */
 export type OrderInfo = {
   status: (typeof STATUSES)[number];
   carrier?: string | null;
   eta?: string | null;
 };
 
+/**
+ * Determine an order's status using a few layered heuristics:
+ * 1. If a timing key exists in localStorage use it to compute progression.
+ * 2. Otherwise read persisted orders in localStorage and compute elapsed-based status.
+ * 3. Fallback to a deterministic mapping based on the id string.
+ *
+ * This is intentionally simple and deterministic for the demo environment.
+ */
 export const getOrderStatus = async (id: string): Promise<OrderInfo> => {
   try {
     // First check for an explicit timing key possibly written by the checkout UI
@@ -90,7 +122,13 @@ export const getOrderStatus = async (id: string): Promise<OrderInfo> => {
   };
 };
 
-// Mock placeOrder: return a new order id and (optionally) echo minimal info.
+/**
+ * Mock placing an order: persist minimal order metadata to localStorage and
+ * return a generated orderId. The returned id is not sensitive and is
+ * deterministic-ish for easier local testing.
+ *
+ * @param cart - array of items with id and qty
+ */
 export const placeOrder = async (cart: { id: string; qty: number }[]) => {
   // deterministic-ish id: timestamp + random suffix
   const raw = Date.now().toString(36) + Math.random().toString(36).slice(2, 8)

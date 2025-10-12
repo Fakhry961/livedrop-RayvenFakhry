@@ -8,6 +8,8 @@ export default function ProductPage() {
   const { id = '' } = useParams()
   const [p, setP] = useState<Product | null>(null)
   const add = useCart(s => s.add)
+  const items = useCart(s => s.items)
+  const inCart = (id: string) => items.find(i => i.id === id)?.qty ?? 0
 
   useEffect(() => {
     getProduct(id).then(prod => setP(prod ?? null))
@@ -27,13 +29,15 @@ export default function ProductPage() {
         <h1 className="text-2xl font-semibold">{p.title}</h1>
         <p className="mt-2 text-gray-600">{p.desc}</p>
         <div className="mt-3 text-lg font-medium">{fmtCurrency(p.price)}</div>
+        <div className="mt-1 text-sm text-gray-500">{(p.stockQty - inCart(p.id)) > 0 ? `${p.stockQty - inCart(p.id)} available` : 'Out of stock'}</div>
         <button
           className="mt-4 rounded-lg border px-3 py-2 hover:bg-gray-50"
           onClick={() => add(p)}
+          disabled={(p.stockQty - inCart(p.id)) <= 0}
         >
           <div className="flex items-center gap-2">
             <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><circle cx="10" cy="20" r="1" fill="currentColor" /><circle cx="18" cy="20" r="1" fill="currentColor" /></svg>
-            <span>Add to cart</span>
+            <span>{(p.stockQty - inCart(p.id)) > 0 ? 'Add to cart' : 'Sold out'}</span>
           </div>
         </button>
       </div>

@@ -7,6 +7,10 @@ const STOPWORDS = new Set([
   'the','is','in','at','of','a','an','and','or','to','for','how','do','i','my','me','what','where','when','who','can','you','these'
 ])
 
+/**
+ * Lightweight tokenizer used to create bag-of-words features for the
+ * ground-truth Q&A matches. Removes short words and a small set of stopwords.
+ */
 function tokenize(s: string) {
   return s
     .toLowerCase()
@@ -15,6 +19,18 @@ function tokenize(s: string) {
     .filter(t => t.length > 2 && !STOPWORDS.has(t))
 }
 
+/**
+ * Answer a free-form question using a small local Q&A dataset (`ground-truth.json`).
+ *
+ * Behavior:
+ * - If an order ID is present in the query, try to resolve the order status and
+ *   prefer order-related Q&As.
+ * - If the user asks about an order without providing an ID, prompt for the ID.
+ * - Otherwise match tokens against the dataset and return the best-scoring answer
+ *   when confidence is sufficient; otherwise return a refusal.
+ *
+ * Returns an object of shape `{ kind: 'answer'|'refusal', text: string, cite: string|null }`.
+ */
 export async function answer(raw: string) {
   const q = raw.trim()
   const id = (q.match(ORDER_RE)?.[0] || '').toUpperCase()

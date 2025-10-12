@@ -136,3 +136,56 @@ This repo contains:
 - `README.md` (this document)  
 
 ---
+
+## Quick start — run the storefront and Storybook locally
+
+Prerequisites
+- Node.js 18+ (LTS)
+- pnpm installed globally:
+  ```bash
+  npm install -g pnpm
+  ```
+
+Install dependencies
+- From repo root (or directly inside the app):
+  ```bash
+  cd apps/storefront
+  pnpm install
+  ```
+
+Run the dev app
+- Start the Vite dev server:
+  ```bash
+  pnpm dev
+  ```
+- Open http://localhost:5173
+
+Run Storybook
+- From `apps/storefront`:
+  ```bash
+  pnpm run storybook
+  ```
+- Open http://localhost:6006
+
+Run tests
+- Unit tests (vitest):
+  ```bash
+  pnpm test
+  ```
+
+Windows / PowerShell notes
+- If `pnpm` scripts fail with script execution errors, run in cmd.exe or enable script execution for the current user:
+  ```powershell
+  Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+  ```
+  Then re-open PowerShell.
+
+Troubleshooting
+- If you see TypeScript type errors about missing `vite/client` or vitest globals, run `pnpm install` from `apps/storefront` (the repo provides a pnpm lockfile).
+- If files show as untracked (for example `.storybook` was untracked), commit them:
+  ```bash
+  git add apps/storefront/.storybook
+  git commit -m "Add Storybook config"
+  git push
+  ```
+
