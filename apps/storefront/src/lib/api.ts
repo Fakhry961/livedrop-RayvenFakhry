@@ -142,4 +142,66 @@ export const placeOrder = async (cart: { id: string; qty: number }[]) => {
     console.warn('failed to persist order', err)
   }
   return { orderId }
+
+// -----------------------------
+// LLM helper (frontend -> backend)
+// -----------------------------
+const API = import.meta.env.VITE_API_URL ?? "";
+
+// What the backend returns from POST /api/generate
+export type GenerateResponse = {
+  output: string;              // main text
+  model?: string;
+  latency_ms?: number;
+  [k: string]: unknown;        // allow extras
+};
+
+// Optional: quick health check for your panel
+export async function pingAPI(): Promise<boolean> {
+  try {
+    const res = await fetch(`${API}/`, { method: "GET" });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function askLLM(
+  prompt: string,
+  opts?: { system?: string; cart?: unknown; products?: unknown }
+): Promise<GenerateResponse> {
+  if (!API) {
+    throw new Error(
+      "VITE_API_URL is not set. Add it to .env.local (dev) or your Vercel env (prod)."
+    );
+  }
+
+  // small timeout guard so the UI doesn’t hang forever
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 30000);
+
+  try {
+    const res = await fetch(`${API}/api/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: ctrl.signal,
+      body: JSON.stringify({
+        prompt,
+        // send optional context so your backend can improve answers
+        context: {
+          system: opts?.system ?? "You are Storefront’s helpful assistant.",
+          cart: opts?.cart ?? null,
+          products: opts?.products ?? null,
+        },
+      }),
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(text || `Request failed: ${res.status}`);
+    }
+    return (await res.json()) as GenerateResponse;
+  } finally {
+    clearTimeout(t);
+  }
 }
