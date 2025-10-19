@@ -1,1 +1,20 @@
-apps/api/.env  
+# deps & builds
+node_modules/
+apps/*/node_modules/
+apps/*/dist/
+apps/*/.next/
+apps/*/.turbo/
+apps/*/.vercel/
+coverage/
+*.log
+
+# local env & editor
+.env
+.env.*
+!.env.example
+.vscode/
+.DS_Store
+
+# OS cruft
+Thumbs.db
+apps/api/node_modules 
