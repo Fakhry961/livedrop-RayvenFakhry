@@ -142,6 +142,7 @@ export const placeOrder = async (cart: { id: string; qty: number }[]) => {
     console.warn('failed to persist order', err)
   }
   return { orderId }
+}
 
 // -----------------------------
 // LLM helper (frontend -> backend)

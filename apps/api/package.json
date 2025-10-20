@@ -8,6 +8,7 @@
     "build": "tsc -p tsconfig.json",
     "lint": "eslint \"src/**/*.ts\" --fix",
     "dev": "tsx watch src/server.ts",
+    "dev:mem": "node scripts/dev-mem.js",
     "start": "node dist/server.js"
   },
   "dependencies": {
@@ -24,6 +25,7 @@
     "@typescript-eslint/parser": "^8.46.1",
     "eslint": "^8.57.0",
     "ts-node-dev": "^2.0.0",
+    "mongodb-memory-server": "^8.11.1",
     "typescript": "^5.4.5"
   }
 }

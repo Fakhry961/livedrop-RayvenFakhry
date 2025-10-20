@@ -1,5 +1,5 @@
 // src/components/organisms/ProductGrid.tsx
-import * as React from 'react'
+// React import not required with the new JSX transform
 import ProductCard from '../molecules/ProductCard'
 import type { Product } from '../../lib/api'
 

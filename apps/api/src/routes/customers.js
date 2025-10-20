@@ -1,2 +1,3 @@
 export * from './customers.ts';
-export { default } from './customers.ts';
+import def from './customers.ts';
+export default def;
