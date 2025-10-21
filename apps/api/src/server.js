@@ -1,14 +1,18 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import 'dotenv/config';
 import { MongoClient } from "mongodb";
+
 
 // Routers
 import productsRouter from "./routes/products.js";
 import ordersRouter from "./routes/orders.js";
 import customersRouter from "./routes/customers.js";
 import analyticsRouter from "./routes/analytics.js";
-import dashboardRouter from "./routes/dashboard.js"; // optional if you have it
+import dashboardRouter from "./routes/dashboard.js";
+import assistantRouter from "./routes/assistant.js";
+ // optional if you have it
 
 // Middleware (optional but recommended)
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -90,7 +94,9 @@ app.use("/api", productsRouter);
 app.use("/api", ordersRouter);
 app.use("/api", customersRouter);
 app.use("/api", analyticsRouter);
-app.use("/api", dashboardRouter); // optional
+app.use("/api", dashboardRouter); 
+app.use("/api", assistantRouter);
+// optional
 
 // ---------- 404 Handler ----------
 app.use((_req, res) => {
