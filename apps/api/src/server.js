@@ -22,8 +22,8 @@ const db = await connectDb();
 app.use((req, _res, next) => { req.db = db; next(); });
 
 // Health
-app.get('/api/health', (_req, res) => {
-  res.json({ ok: true, now: new Date(), env: process.env.NODE_ENV || 'development' });
+app.get('/', (_req, res) => {
+  res.type('text/plain').send('OK');
 });
 
 // Routes
