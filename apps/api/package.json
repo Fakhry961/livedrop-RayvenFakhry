@@ -2,14 +2,12 @@
   "name": "livedrop-api",
   "version": "0.1.0",
   "private": true,
-  "type": "commonjs",
-  "main": "dist/server.js",
+  "type": "module",
+  "description": "LiveDrop API – Express + MongoDB backend for product, order, and analytics endpoints.",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "lint": "eslint \"src/**/*.ts\" --fix",
-    "dev": "tsx watch src/server.ts",
-    "dev:mem": "node scripts/dev-mem.js",
-    "start": "node dist/server.js"
+    "dev": "nodemon --watch src --ext js,json --exec node src/server.js",
+    "start": "node src/server.js",
+    "seed": "node scripts/seed.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -18,14 +16,18 @@
     "mongodb": "^6.8.0"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.21",
-    "@types/node": "^20.14.10",
-    "@typescript-eslint/eslint-plugin": "^8.46.1",
-    "@typescript-eslint/parser": "^8.46.1",
-    "eslint": "^8.57.0",
-    "ts-node-dev": "^2.0.0",
-    "mongodb-memory-server": "^8.11.1",
-    "typescript": "^5.4.5"
-  }
+    "nodemon": "^3.1.10"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "express",
+    "mongodb",
+    "api",
+    "analytics",
+    "ecommerce"
+  ],
+  "author": "",
+  "license": "MIT"
 }

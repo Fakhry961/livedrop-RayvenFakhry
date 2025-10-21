@@ -1,24 +1,43 @@
-import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import { connectDb } from './db';
-import customers from './routes/customers';
-import products from './routes/products';
-import orders from './routes/orders';
-import analytics from './routes/analytics';
-import dashboard from './routes/dashboard';
+import { connectDb } from './db.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import { metricsMiddleware } from './middleware/metrics.js';
+
+import customers from './routes/customers.js';
+import products from './routes/products.js';
+import orders from './routes/orders.js';
+import analytics from './routes/analytics.js';
+import dashboard from './routes/dashboard.js';
 
 const app = express();
-app.use(cors());
+
+const origins = (process.env.CORS_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+app.use(cors({ origin: origins.length ? origins : undefined }));
+
 app.use(express.json());
+app.use(metricsMiddleware);
 
-app.use('/api/customers', customers);
-app.use('/api/products', products);
-app.use('/api/orders', orders);
-app.use('/api/analytics', analytics);
-app.use('/api/dashboard', dashboard);
+const db = await connectDb();
+app.use((req, _res, next) => { req.db = db; next(); });
 
-const port = process.env.PORT ?? 4000;
-connectDb().then(() => {
-  app.listen(port, () => console.log(`API listening on http://localhost:${port}`));
+// Health
+app.get('/api/health', (_req, res) => {
+  res.json({ ok: true, now: new Date(), env: process.env.NODE_ENV || 'development' });
 });
+
+// Routes
+app.use('/api', customers);
+app.use('/api', products);
+app.use('/api', orders);
+app.use('/api', analytics);
+app.use('/api', dashboard);
+
+// 404
+app.use((_req, res) => res.status(404).json({ error: { code: 404, message: 'Not Found' } }));
+
+// Central error handler
+app.use(errorHandler);
+
+const port = process.env.PORT || 3001;
+app.listen(port, () => console.log(`[api] listening on http://localhost:${port}`));
