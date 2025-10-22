@@ -1,0 +1,12 @@
+[
+  {"id":"Policy3.1","category":"refunds","lastUpdated":"2025-06-01","summary":"Damaged or defective items are eligible for a full refund within 30 days of delivery with photo evidence."},
+  {"id":"Policy3.2","category":"refunds","lastUpdated":"2025-06-01","summary":"Change-of-mind returns are accepted within 14 days; items must be unused and in original packaging."},
+  {"id":"Policy3.3","category":"refunds","lastUpdated":"2025-06-01","summary":"Refunds are processed to the original payment method within 5–7 business days after inspection."},
+  {"id":"Policy4.1","category":"shipping","lastUpdated":"2025-05-15","summary":"Standard shipping ETA is 3–5 business days within the continental region."},
+  {"id":"Policy4.2","category":"shipping","lastUpdated":"2025-05-15","summary":"Orders placed after 2pm local time ship the next business day."},
+  {"id":"Policy5.1","category":"warranty","lastUpdated":"2025-04-10","summary":"Electronics include a 1-year limited warranty covering manufacturer defects."},
+  {"id":"Policy6.1","category":"privacy","lastUpdated":"2025-03-12","summary":"We do not sell personal data; see the Privacy Policy for data rights and requests."},
+  {"id":"Policy7.1","category":"payments","lastUpdated":"2025-05-30","summary":"We accept major credit cards and PayPal; prepaid cards are not supported for subscriptions."},
+  {"id":"Policy8.1","category":"pricing","lastUpdated":"2025-07-20","summary":"Price adjustments are honored within 7 days of purchase with proof of lower advertised price."},
+  {"id":"Policy9.1","category":"support","lastUpdated":"2025-06-25","summary":"Live chat hours: Mon–Fri 9am–6pm local; responses within 24h outside those hours."}
+]
