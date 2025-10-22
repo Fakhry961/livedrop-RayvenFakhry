@@ -26,11 +26,24 @@ export type Product = {
 const catalogUrl =
   `/mock-catalog.json${import.meta.env.DEV ? `?v=${Date.now()}` : ""}`;
 
+// If VITE_API_URL is set (in Vercel or local .env), prefer the backend API for
+// product data. This lets deployed frontends use the canonical DB while local
+// dev still benefits from the simple mock file.
+const API_BASE = (import.meta.env as any).VITE_API_URL ?? "";
+
 /**
  * Fetch the product catalog (mock JSON). Returns an array of Product.
  * In development the request bypasses cache so authors see edits immediately.
  */
 export const listProducts = async (): Promise<Product[]> => {
+  if (API_BASE) {
+    // Backend returns { items, page, limit, total }
+    const res = await fetch(`${API_BASE}/api/products`);
+    if (!res.ok) throw new Error(`products fetch failed: ${res.status}`);
+    const body = await res.json();
+    return body.items ?? [];
+  }
+
   const res = await fetch(catalogUrl, {
     cache: import.meta.env.DEV ? "no-store" : "default",
   });
@@ -42,6 +55,12 @@ export const listProducts = async (): Promise<Product[]> => {
  * Return a single product by id or undefined if not found.
  */
 export const getProduct = async (id: string) => {
+  if (API_BASE) {
+    const res = await fetch(`${API_BASE}/api/products/${encodeURIComponent(id)}`);
+    if (!res.ok) return undefined;
+    return res.json();
+  }
+
   const all = await listProducts();
   return all.find(p => p.id === id);
 };
