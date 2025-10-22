@@ -1,5 +1,5 @@
 // apps/api/src/assistant/engine.js
-// Routes by intent, does simple grounding, caps function calls (≤2),
+// Routes by intent, runs simple grounding, caps function calls (≤2),
 // validates [PolicyID] citations, composes a prompt, and calls /generate.
 
 import { classifyIntent } from "./intent-classifier.js";
@@ -15,11 +15,17 @@ let PROMPT_CFG, POLICIES;
 
 async function loadArtifacts() {
   if (!PROMPT_CFG) {
-    const yamlText = await readFile(new URL("../../docs/prompts.yaml", import.meta.url), "utf8");
+    const yamlText = await readFile(
+      new URL("../../docs/prompts.yaml", import.meta.url),
+      "utf8"
+    );
     PROMPT_CFG = YAML.parse(yamlText);
   }
   if (!POLICIES) {
-    const jsonText = await readFile(new URL("../../docs/ground-truth.json", import.meta.url), "utf8");
+    const jsonText = await readFile(
+      new URL("../../docs/ground-truth.json", import.meta.url),
+      "utf8"
+    );
     POLICIES = JSON.parse(jsonText);
   }
 }
@@ -31,18 +37,23 @@ async function loadArtifacts() {
 // find policies by a loose category keyword
 function findPoliciesByCategory(category) {
   const c = String(category || "").toLowerCase();
-  return POLICIES.filter(p => String(p.category || "").toLowerCase().includes(c));
+  return POLICIES.filter((p) =>
+    String(p.category || "").toLowerCase().includes(c)
+  );
 }
 
 // strip any [PolicyID] that does not exist in KB
 function validatePolicyTags(text) {
-  const ids = [...text.matchAll(/\[(Policy[\d.]+)\]/g)].map(m => m[1]);
+  const ids = [...text.matchAll(/\[(Policy[\d.]+)\]/g)].map((m) => m[1]);
   if (!ids.length) return text;
-  const valid = new Set(POLICIES.map(p => p.id));
-  return ids.reduce((acc, id) => (valid.has(id) ? acc : acc.replaceAll(`[${id}]`, "")), text);
+  const valid = new Set(POLICIES.map((p) => p.id));
+  return ids.reduce(
+    (acc, id) => (valid.has(id) ? acc : acc.replaceAll(`[${id}]`, "")),
+    text
+  );
 }
 
-// last-pass safety to remove chat markers or echoed prompt
+// last-pass cleanup for chat artifacts or echoed prompt
 function sanitizeLLMOutput(text = "", query = "") {
   if (!text) return "";
   if (query && text.startsWith(query)) text = text.slice(query.length);
@@ -64,39 +75,50 @@ export async function answer(query) {
 
   // ---------- Tool-first: order status ----------
   if (intent === "order_status") {
-    // tolerate "order 12345", "order-12345", etc.
-    const idMatch = String(query).match(/(order[_ -]?\w+)/i);
-    const orderId = idMatch ? idMatch[0] : "unknown";
-    const info = await execute("getOrderStatus", { orderId }); fnCalls++;
+    // Better extraction for various order ID formats
+    let orderId;
+    const m1 = String(query).match(/\border\s*[:#-]?\s*([A-Za-z0-9_-]{3,})\b/i);
+    if (m1) orderId = m1[1];
+    if (!orderId && /\border\b/i.test(query)) {
+      const m2 = String(query).match(/\b([A-Za-z0-9_-]{5,})\b/);
+      if (m2) orderId = m2[1];
+    }
+    if (!orderId) orderId = "unknown";
+
+    const info = await execute("getOrderStatus", { orderId });
+    fnCalls++;
+
     return {
       text: `Order **${info.orderId}** is **${info.status}**. ETA: ${info.eta}.`,
-      meta: { intent, used: "getOrderStatus", fnCalls }
+      meta: { intent, used: "getOrderStatus", fnCalls },
     };
   }
 
-  // ---------- Optional second tool call examples (kept off by default) ----------
+  // ---------- Optional: product search ----------
+  // (Example: can be toggled later)
   // if (intent === "product_search" && fnCalls < MAX_FN) {
   //   const res = await execute("searchProducts", { query, limit: 5 }); fnCalls++;
-  //   // You could summarize res.items here, or let the LLM do it via grounding below.
   // }
 
-  // ---------- Grounding for policy questions ----------
+  // ---------- Policy grounding ----------
   let groundSnippets = "";
   if (intent === "policy_question") {
-    // naive extraction of a category keyword from the query
-    const cat = /refund|return|warranty|privacy|shipping|payments|pricing|support/i.exec(query || "")?.[0] || "policy";
-    const hits = findPoliciesByCategory(cat.toLowerCase()).slice(0, 3); // keep short/contextual
+    const cat =
+      /refund|return|warranty|privacy|shipping|payments|pricing|support/i.exec(
+        query || ""
+      )?.[0] || "policy";
+    const hits = findPoliciesByCategory(cat.toLowerCase()).slice(0, 3);
     if (hits.length) {
       groundSnippets =
         "Relevant Policies:\n" +
-        hits.map(p => `- [${p.id}] (${p.lastUpdated}) ${p.summary}`).join("\n");
+        hits.map((p) => `- [${p.id}] (${p.lastUpdated}) ${p.summary}`).join("\n");
     }
   }
 
   // ---------- Compose system + task prompt ----------
-  const toneLines = (PROMPT_CFG?.tone || []).map(t => `- ${t}`).join("\n");
-  const neverSay = (PROMPT_CFG?.never_say || []).map(t => `- ${t}`).join("\n");
-  const toolSchemas = JSON.stringify(getAllSchemas()); // for future function-use prompting (not shown to user)
+  const toneLines = (PROMPT_CFG?.tone || []).map((t) => `- ${t}`).join("\n");
+  const neverSay = (PROMPT_CFG?.never_say || []).map((t) => `- ${t}`).join("\n");
+  const toolSchemas = JSON.stringify(getAllSchemas());
 
   const systemPrompt =
     `Role: ${PROMPT_CFG?.role || "Support assistant"}\n` +
@@ -105,7 +127,6 @@ export async function answer(query) {
     (groundSnippets ? `\n${groundSnippets}\n` : "") +
     `\nAvailable functions (do NOT mention these to the user): ${toolSchemas}`;
 
-  // Keep assistant turn explicit; client-side sanitize trims "User/Assistant" spill
   const prompt =
     `${systemPrompt}\n\n` +
     `User: ${query}\n` +
@@ -117,11 +138,18 @@ export async function answer(query) {
     const rawText = await generateText(prompt, 300);
     const validated = validatePolicyTags(rawText);
     const cleaned = sanitizeLLMOutput(validated, query);
-    return { text: cleaned, meta: { intent, used: "LLM", fnCalls } };
+
+    // Optional: wrap bare policy lines into friendlier wording
+    let text = cleaned;
+    if (/^\[Policy[\d.]+\]/.test(text)) {
+      text = `You’re eligible for a refund if the item arrived damaged—within 30 days with photo evidence. ${text}`;
+    }
+
+    return { text, meta: { intent, used: "LLM", fnCalls } };
   } catch (err) {
     return {
       text: "Sorry — I had trouble contacting the model.",
-      meta: { intent, used: "LLM", error: String(err?.message || err), fnCalls }
+      meta: { intent, used: "LLM", error: String(err?.message || err), fnCalls },
     };
   }
 }
