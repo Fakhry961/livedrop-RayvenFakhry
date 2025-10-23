@@ -10,11 +10,18 @@ This repository contains two main apps under `apps/`:
 This README explains how to run the project locally, seed the database, build for production, and deploy the frontend to Vercel.
 
 
+## Render Testing (https://livedrop-rayvenfakhry.onrender.com/)
+
+/api/health
+/api/products
+/api/customers
+/api/orders
+
+## Vercel Testing (https://livedrop-rayvenfakhry.vercel.app/)
 ## Demos email to sign in
 drew.kumar297@example.com
 rowan.ibrahim585@inbox.test
 taylor.hernandez806@inbox.test
-
 
 
 ## Quick start (local)
