@@ -5,7 +5,7 @@ import { Navigate } from "react-router-dom";
 
 // Existing pages
 
-import Catalog from "../pages/catalog";
+// Catalog page moved into main router; remove unused import to satisfy TS noUnusedLocals
 import CartPage from "../pages/cart";
 import CheckoutPage from "../pages/checkout";
 import ProductPage from "../pages/product";
