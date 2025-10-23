@@ -1,126 +1,94 @@
-import { useNavigate, Link } from 'react-router-dom'
-import { useCart } from '../lib/store'
-import { placeOrder } from '../lib/api'
-import { fmtCurrency } from '../lib/format'
-import { useEffect, useState } from 'react'
+import { useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { placeOrder, listProducts, type Product } from "../lib/api";
+import { useCart } from "../lib/store";
+import { fmtCurrency } from "../lib/format";
 
 export default function Checkout() {
-  const nav = useNavigate()
-  const items = useCart(s => s.items)
-  const clear = useCart(s => s.clear)
-  const total = items.reduce((sum, it) => sum + it.price * it.qty, 0)
+  const nav = useNavigate();
+  const items = useCart((s) => s.items);
+  const clear = useCart((s) => s.clear);
 
-  const placeOrderClick = async () => {
-    setSubmitting(true)
-    const payload = items.map(i => ({ id: i.id, qty: i.qty }))
-    const res = await placeOrder(payload)
+  // derive total from mock catalog prices (defensive: if a product disappears, price 0)
+  const [catalog, setCatalog] = useState<Product[] | null>(null);
+  useMemo(() => {
+    listProducts().then(setCatalog).catch(() => setCatalog([]));
+  }, []);
 
-    // Seed order timing so status progresses across refreshes
-    const intervalMs = 2000 + Math.floor(Math.random() * 2000) // 2–4s
-    const key = `order:${res.orderId}:timing`
+  const total = useMemo(() => {
+    if (!catalog) return 0;
+    return items.reduce((sum, it) => {
+      const p = catalog.find((c) => c.id === it.id);
+      return sum + (p?.price ?? 0) * it.qty;
+    }, 0);
+  }, [catalog, items]);
+
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function handlePlaceOrder() {
+    setErr(null);
+    if (!items.length) {
+      setErr("Your cart is empty.");
+      return;
+    }
+    setBusy(true);
     try {
-      localStorage.setItem(
-        key,
-        JSON.stringify({ startTs: Date.now(), intervalMs, startStep: 0 })
-      )
-    } catch {}
-
-    clear()
-    setSubmitting(false)
-    nav(`/order/${res.orderId}`)
-  }
-
-  const [isSubmitting, setSubmitting] = useState(false)
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key !== 'Enter') return
-      if (window.location.pathname !== '/checkout') return
-      const active = document.activeElement as HTMLElement | null
-      const tag = active?.tagName?.toLowerCase()
-      if (tag === 'input' || tag === 'textarea' || (active && active.getAttribute('role') === 'spinbutton')) return
-      if (isSubmitting) return
-      e.preventDefault()
-      // trigger place order
-      void placeOrderClick()
+      // Send only id/qty; server will validate/prices from DB
+      const res = await placeOrder(items.map((i) => ({ id: i.id, qty: i.qty })));
+      clear();                       // empty cart after a successful order
+      nav(`/order/${encodeURIComponent(res.orderId)}`);
+    } catch (e: any) {
+      setErr(String(e?.message || e));
+    } finally {
+      setBusy(false);
     }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [isSubmitting])
-
-  // Escape returns to cart
-  useEffect(() => {
-    const h = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return
-      if (window.location.pathname !== '/checkout') return
-      const active = document.activeElement as HTMLElement | null
-      const tag = active?.tagName?.toLowerCase()
-      if (tag === 'input' || tag === 'textarea' || (active && active.getAttribute('role') === 'spinbutton')) return
-      nav('/cart')
-    }
-    document.addEventListener('keydown', h)
-    return () => document.removeEventListener('keydown', h)
-  }, [nav])
-
-  if (items.length === 0) {
-    return (
-      <div className="max-w-md space-y-4">
-        <h1 className="text-2xl font-semibold">Checkout</h1>
-        <p className="text-gray-600">Your cart is empty.</p>
-        <Link to="/" className="inline-block rounded-lg border px-4 py-2 hover:bg-gray-50">
-          Back to catalog
-        </Link>
-      </div>
-    )
   }
 
   return (
-    <div className="max-w-md space-y-4">
+    <div className="max-w-xl mx-auto">
       <h1 className="text-2xl font-semibold">Checkout</h1>
-      <p className="text-gray-600">This is a simplified checkout preview.</p>
+      <p className="text-gray-600 mt-1">This is a simplified checkout preview.</p>
 
-      <div className="space-y-2">
-        {items.map((it) => (
-          <div key={it.id} className="flex items-center justify-between text-sm">
-            <span className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-gray-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 3h2l.4 2M7 13h10l4-8H5.4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                <circle cx="10" cy="20" r="1" fill="currentColor" />
-                <circle cx="18" cy="20" r="1" fill="currentColor" />
+      <div className="mt-6 space-y-2">
+        {items.map((i) => (
+          <div key={i.id} className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M3 3h2l.4 2M7 13h10l4-8H5.4" stroke="currentColor" strokeWidth="1.5"
+                  strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              {it.title} × {it.qty}
+              <span className="text-gray-700">{i.title ?? i.id}</span>
+              <span className="text-gray-400">× {i.qty}</span>
+            </div>
+            <span className="tabular-nums">
+              {fmtCurrency(
+                (catalog?.find((p) => p.id === i.id)?.price ?? 0) * i.qty
+              )}
             </span>
-            <span className="font-medium">${(it.price * it.qty).toFixed(2)}</span>
           </div>
         ))}
       </div>
 
-      <div className="flex items-center justify-between border rounded-lg p-3">
-        <span className="font-medium">Order total</span>
-        <span className="text-lg font-semibold">{fmtCurrency(total)}</span>
+      <div className="mt-6 border rounded-lg p-3 flex items-center justify-between">
+        <div className="text-sm text-gray-600">Order total</div>
+        <div className="font-medium">{fmtCurrency(total)}</div>
       </div>
 
-      <div className="flex gap-3">
-        <Link to="/cart" className="rounded-lg border px-4 py-2 hover:bg-gray-50 flex items-center gap-2">
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3 3h2l.4 2M7 13h10l4-8H5.4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            <circle cx="10" cy="20" r="1" fill="currentColor" />
-            <circle cx="18" cy="20" r="1" fill="currentColor" />
-          </svg>
-          Back to cart
+      {err && <div className="mt-3 text-sm text-red-600">{err}</div>}
+
+      <div className="mt-4 flex gap-3">
+        <Link to="/cart" className="border rounded-lg px-3 py-2 hover:bg-gray-50">
+          ← Back to cart
         </Link>
         <button
-          onClick={placeOrderClick}
-          disabled={isSubmitting}
-          aria-busy={isSubmitting}
-          className={"rounded-lg bg-blue-600 text-white px-4 py-2 flex items-center gap-2 " + (isSubmitting ? 'opacity-60 cursor-wait' : 'hover:bg-blue-700')}
+          className="rounded-lg px-4 py-2 bg-blue-500 text-white disabled:opacity-50"
+          onClick={handlePlaceOrder}
+          disabled={busy || !items.length}
         >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Place order
+          {busy ? "Placing…" : "✓ Place order"}
         </button>
       </div>
     </div>
-  )
+  );
 }
